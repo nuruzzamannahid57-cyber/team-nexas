@@ -120,6 +120,34 @@ app.post('/api/activities', async (req, res) => {
     }
 });
 
+// GET /api/health — quick way to confirm the server (and Turso) is actually
+// reachable, useful when debugging blank/odd responses from the client.
+app.get('/api/health', async (req, res) => {
+    try {
+        await turso.execute('SELECT 1');
+        res.json({ status: 'ok', turso: 'connected' });
+    } catch (err) {
+        console.error('Health check failed:', err);
+        res.status(500).json({ status: 'error', error: err.message });
+    }
+});
+
+// Any /api/* route that didn't match above (wrong method, typo, etc.)
+// still gets a JSON response instead of Express's default HTML 404 page.
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: `No API route for ${req.method} ${req.originalUrl}` });
+});
+
+// Central error handler — guarantees every failure (including malformed
+// JSON request bodies, or anything thrown outside a route's own try/catch)
+// comes back as JSON with a real status code, never an empty or HTML body.
+// That's what causes the frontend's "Unexpected end of JSON input" error.
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err);
+    if (res.headersSent) return next(err);
+    res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
+
 const PORT = process.env.PORT || 3000;
 
 initSchema()
