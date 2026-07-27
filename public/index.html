@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Field Force Activity Tracker</title>
+    <title>Team Nexus Activity Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -94,6 +94,9 @@
                 <div class="mt-6 mb-4 px-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Analytics</div>
                 <button onclick="switchView('area-analytics')" id="nav-area-analytics" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-700">
                     <i class="fas fa-map w-5"></i> Area-wise Details
+                </button>
+                <button onclick="switchView('monthly-analytics')" id="nav-monthly-analytics" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-700">
+                    <i class="fas fa-calendar-days w-5"></i> Monthly Analytics
                 </button>
                 <button onclick="switchView('reports')" id="nav-reports" class="sidebar-item w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-slate-700">
                     <i class="fas fa-file-alt w-5"></i> Reports
@@ -389,6 +392,84 @@
                     </div>
                 </div>
 
+                <!-- MONTHLY ANALYTICS VIEW -->
+                <div id="view-monthly-analytics" class="hidden fade-in space-y-6">
+                    <!-- This Month Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600">
+                                    <i class="fas fa-walking text-xl"></i>
+                                </div>
+                                <span id="ma-visits-trend" class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">0%</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800" id="ma-visits">0</h3>
+                            <p class="text-sm text-slate-500">Visits This Month</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center text-purple-600">
+                                    <i class="fas fa-store text-xl"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800" id="ma-merchants">0</h3>
+                            <p class="text-sm text-slate-500">Merchants This Month</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600">
+                                    <i class="fas fa-shopping-bag text-xl"></i>
+                                </div>
+                                <span id="ma-orders-trend" class="text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">0%</span>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800" id="ma-orders">0</h3>
+                            <p class="text-sm text-slate-500">Orders This Month</p>
+                        </div>
+                        <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center text-green-600">
+                                    <i class="fas fa-chart-pie text-xl"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800" id="ma-conversion">0%</h3>
+                            <p class="text-sm text-slate-500">Conversion Rate</p>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Trend Chart -->
+                    <div class="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold">Monthly Trend (Last 6 Months)</h3>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="monthlyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Breakdown Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="px-6 py-4 border-b border-slate-100">
+                            <h3 class="text-lg font-semibold">Month-by-Month Breakdown</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-slate-500 font-medium">
+                                    <tr>
+                                        <th class="px-6 py-3">Month</th>
+                                        <th class="px-6 py-3">Visits</th>
+                                        <th class="px-6 py-3">Unique Merchants</th>
+                                        <th class="px-6 py-3">Orders</th>
+                                        <th class="px-6 py-3">Conversion Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="monthly-table" class="divide-y divide-slate-100">
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- REPORTS VIEW -->
                 <div id="view-reports" class="hidden fade-in space-y-6">
                     <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
@@ -594,6 +675,7 @@
                 'merchant-visits': 'Merchant Visits',
                 'team-view': 'Team Activities',
                 'area-analytics': 'Area-wise Analytics',
+                'monthly-analytics': 'Monthly Analytics',
                 'reports': 'Reports'
             };
             document.getElementById('page-title').textContent = titles[view];
@@ -602,6 +684,7 @@
             if (view === 'dashboard') renderDashboard();
             if (view === 'merchant-visits') renderMerchants();
             if (view === 'team-view') renderTeamView();
+            if (view === 'monthly-analytics') renderMonthlyAnalytics();
             if (view === 'area-analytics') renderAreaAnalytics();
         }
 
@@ -1003,6 +1086,139 @@
             });
         }
 
+        // ==================== MONTHLY ANALYTICS ====================
+
+        function getMonthKey(dateStr) {
+            return dateStr.slice(0, 7); // "YYYY-MM"
+        }
+
+        function getMonthLabel(monthKey) {
+            const [y, m] = monthKey.split('-').map(Number);
+            return new Date(y, m - 1, 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+
+        function pctChange(curr, prev) {
+            if (prev === 0) return curr > 0 ? 100 : 0;
+            return Math.round(((curr - prev) / prev) * 100);
+        }
+
+        function setTrendBadge(id, pct) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.textContent = `${pct > 0 ? '+' : ''}${pct}%`;
+            el.className = pct >= 0
+                ? 'text-xs font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full'
+                : 'text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full';
+        }
+
+        function renderMonthlyAnalytics() {
+            const acts = getVisibleActivities();
+
+            // Group activities by calendar month
+            const monthStats = {};
+            acts.forEach(a => {
+                const key = getMonthKey(a.date);
+                if (!monthStats[key]) {
+                    monthStats[key] = { visits: 0, merchants: new Set(), orders: 0 };
+                }
+                monthStats[key].visits++;
+                monthStats[key].merchants.add(a.merchantName);
+                monthStats[key].orders += a.orders;
+            });
+
+            const sortedMonths = Object.keys(monthStats).sort(); // chronological, oldest -> newest
+
+            // ---- Stat cards: this calendar month vs last calendar month ----
+            const now = new Date();
+            const thisKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+
+            const empty = { visits: 0, merchants: new Set(), orders: 0 };
+            const thisStats = monthStats[thisKey] || empty;
+            const prevStats = monthStats[prevKey] || empty;
+
+            document.getElementById('ma-visits').textContent = thisStats.visits;
+            document.getElementById('ma-merchants').textContent = thisStats.merchants.size;
+            document.getElementById('ma-orders').textContent = thisStats.orders;
+            const thisConversion = thisStats.visits > 0 ? ((thisStats.orders / thisStats.visits) * 100).toFixed(1) : '0.0';
+            document.getElementById('ma-conversion').textContent = `${thisConversion}%`;
+
+            setTrendBadge('ma-visits-trend', pctChange(thisStats.visits, prevStats.visits));
+            setTrendBadge('ma-orders-trend', pctChange(thisStats.orders, prevStats.orders));
+
+            // ---- Trend chart: last 6 months that have data ----
+            const chartMonths = sortedMonths.slice(-6);
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            if (charts.monthly) charts.monthly.destroy();
+
+            charts.monthly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: chartMonths.map(getMonthLabel),
+                    datasets: [
+                        {
+                            label: 'Visits',
+                            data: chartMonths.map(k => monthStats[k].visits),
+                            backgroundColor: '#3b82f6',
+                            order: 2
+                        },
+                        {
+                            label: 'Orders',
+                            data: chartMonths.map(k => monthStats[k].orders),
+                            backgroundColor: '#10b981',
+                            order: 2
+                        },
+                        {
+                            label: 'Unique Merchants',
+                            data: chartMonths.map(k => monthStats[k].merchants.size),
+                            type: 'line',
+                            borderColor: '#f59e0b',
+                            backgroundColor: '#f59e0b',
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            order: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, position: 'left' },
+                        y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } }
+                    }
+                }
+            });
+
+            // ---- Breakdown table: newest month first ----
+            const tbody = document.getElementById('monthly-table');
+            tbody.innerHTML = [...sortedMonths].reverse().map(key => {
+                const s = monthStats[key];
+                const conversion = s.visits > 0 ? ((s.orders / s.visits) * 100).toFixed(1) : '0.0';
+                return `
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-slate-800">${getMonthLabel(key)}</td>
+                        <td class="px-6 py-4">${s.visits}</td>
+                        <td class="px-6 py-4">${s.merchants.size}</td>
+                        <td class="px-6 py-4 font-semibold">${s.orders}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <div class="w-16 bg-slate-200 rounded-full h-2">
+                                    <div class="bg-blue-500 h-2 rounded-full" style="width: ${Math.min(conversion, 100)}%"></div>
+                                </div>
+                                <span class="text-xs font-medium">${conversion}%</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            if (sortedMonths.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="px-6 py-8 text-center text-slate-400">No activity logged yet</td></tr>`;
+            }
+        }
+
         // ==================== REPORTS ====================
 
         function generateReport() {
@@ -1055,6 +1271,7 @@
             if (currentView === 'merchant-visits') renderMerchants();
             if (currentView === 'team-view') renderTeamView();
             if (currentView === 'area-analytics') renderAreaAnalytics();
+            if (currentView === 'monthly-analytics') renderMonthlyAnalytics();
         }
 
         // Initialize app
