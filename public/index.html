@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Nexus Activity Tracker</title>
+    <title>Field Force Activity Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -527,7 +527,7 @@
 
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-6 py-3 rounded-lg shadow-lg transform translate-y-20 transition-transform duration-300 flex items-center gap-3 z-50">
-        <i class="fas fa-check-circle text-green-400"></i>
+        <i id="toast-icon" class="fas fa-check-circle text-green-400"></i>
         <span id="toast-message">Operation successful</span>
     </div>
 
@@ -571,11 +571,10 @@
             try {
                 const ids = getVisibleUserIds().join(',');
                 const res = await fetch(`/api/activities?userIds=${ids}`);
-                if (!res.ok) throw new Error('Request failed');
-                DB.activities = await res.json();
+                DB.activities = await parseApiResponse(res);
             } catch (err) {
                 console.error(err);
-                showToast('Could not load activities from the server');
+                showToast(err.message || 'Could not load activities from the server', 'error');
                 DB.activities = [];
             }
         }
@@ -835,12 +834,7 @@
                     body: JSON.stringify(activity)
                 });
 
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.error || 'Failed to save activity');
-                }
-
-                const saved = await res.json();
+                const saved = await parseApiResponse(res);
                 DB.activities.unshift(saved);
 
                 showToast('Activity logged successfully!');
@@ -850,7 +844,7 @@
                 setTimeout(() => switchView('dashboard'), 500);
             } catch (err) {
                 console.error(err);
-                showToast(err.message || 'Could not save activity — check your connection');
+                showToast(err.message || 'Could not save activity — check your connection', 'error');
             } finally {
                 btn.disabled = false;
                 label.textContent = 'Save Activity';
@@ -1256,11 +1250,45 @@
 
         // ==================== UTILITIES ====================
 
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
             document.getElementById('toast-message').textContent = message;
+
+            if (type === 'error') {
+                icon.className = 'fas fa-circle-exclamation text-red-400';
+            } else {
+                icon.className = 'fas fa-check-circle text-green-400';
+            }
+
             toast.classList.remove('translate-y-20');
-            setTimeout(() => toast.classList.add('translate-y-20'), 3000);
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => toast.classList.add('translate-y-20'), 3000);
+        }
+
+        // Reads a fetch Response as JSON, but never throws a confusing
+        // "Unexpected end of JSON input" — if the server returned an empty
+        // body, HTML, or something else non-JSON (e.g. a crashed server, a
+        // sleeping Render instance, or a proxy error page), this surfaces
+        // the actual HTTP status instead.
+        async function parseApiResponse(res) {
+            const raw = await res.text();
+            let data = null;
+            if (raw) {
+                try {
+                    data = JSON.parse(raw);
+                } catch (e) {
+                    // Body wasn't valid JSON (HTML error page, empty, etc.)
+                }
+            }
+            if (!res.ok) {
+                const serverMessage = data && data.error ? data.error : null;
+                throw new Error(serverMessage || `Server error (HTTP ${res.status}). Check that the backend is running and reachable.`);
+            }
+            if (data === null) {
+                throw new Error('Server returned an empty response instead of data. It may have crashed or timed out — check the server logs.');
+            }
+            return data;
         }
 
         async function refreshData() {
