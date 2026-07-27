@@ -24,6 +24,7 @@
         .merchant-card { transition: transform 0.2s; }
         .merchant-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-slate-50 text-slate-800">
 
@@ -210,11 +211,10 @@
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Activity Type</label>
                                     <select id="act-type" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                        <option value="phone_whatsapp_contact">Phone/WhatsApp Contact</option>
                                         <option value="merchant_visit">Merchant Visit</option>
-                                        <option value="order_collection">Order Collection</option>
-                                        <option value="follow_up">Follow Up</option>
-                                        <option value="new_onboarding">New Onboarding</option>
-                                        <option value="complaint_resolution">Complaint Resolution</option>
+                                        <option value="onboard">Onboard</option>
+                                        <option value="churn">Churn</option>
                                     </select>
                                 </div>
                             </div>
@@ -227,14 +227,7 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Area / Zone</label>
-                                    <select id="act-area" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                                        <option value="Downtown">Downtown</option>
-                                        <option value="Uptown">Uptown</option>
-                                        <option value="Westside">Westside</option>
-                                        <option value="Eastside">Eastside</option>
-                                        <option value="North District">North District</option>
-                                        <option value="South District">South District</option>
-                                    </select>
+                                    <input type="text" id="act-area" placeholder="Enter area/zone name" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-slate-700 mb-1">Orders Collected</label>
@@ -272,15 +265,7 @@
                             <input type="text" id="merchant-search" oninput="filterMerchants()" placeholder="Search merchants..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                         </div>
                         <div class="flex gap-2">
-                            <select id="area-filter" onchange="filterMerchants()" class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
-                                <option value="">All Areas</option>
-                                <option value="Downtown">Downtown</option>
-                                <option value="Uptown">Uptown</option>
-                                <option value="Westside">Westside</option>
-                                <option value="Eastside">Eastside</option>
-                                <option value="North District">North District</option>
-                                <option value="South District">South District</option>
-                            </select>
+                            <input type="text" id="area-filter" oninput="filterMerchants()" placeholder="Filter by area..." class="px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                         </div>
                     </div>
 
@@ -442,19 +427,17 @@
             activities: [],
             merchants: [],
             users: [
-                { id: 1, name: "John Doe", role: "lead", email: "john@company.com" },
-                { id: 2, name: "Alice Smith", role: "executive", email: "alice@company.com" },
-                { id: 3, name: "Bob Johnson", role: "executive", email: "bob@company.com" },
-                { id: 4, name: "Carol White", role: "executive", email: "carol@company.com" },
-                { id: 5, name: "Manager User", role: "manager", email: "manager@company.com" }
+                { id: 1, name: "Golam Muktadir", role: "manager", empId: "CL-86003", email: "golam.muktadir@company.com" },
+                { id: 2, name: "Md. Ibrahim Mo Jumder", role: "lead", empId: "CL-86123", email: "ibrahim.jumder@company.com" },
+                { id: 3, name: "Shabab Md Shahnawaj", role: "executive", empId: "CL-86180", email: "shabab.shahnawaj@company.com" }
             ],
-            currentUser: { id: 1, name: "John Doe", role: "lead" }
+            currentUser: { id: 2, name: "Md. Ibrahim Mo Jumder", role: "lead", empId: "CL-86123" }
         };
 
         // Seed data
         function seedData() {
             const areas = ["Downtown", "Uptown", "Westside", "Eastside", "North District"];
-            const types = ["merchant_visit", "order_collection", "follow_up", "new_onboarding"];
+            const types = ["phone_whatsapp_contact", "merchant_visit", "onboard", "churn"];
             const merchants = ["SuperMart", "QuickShop", "ValueStore", "MegaMart", "LocalGrocers", "DailyNeeds", "FreshMarket"];
             
             for (let i = 0; i < 25; i++) {
@@ -571,7 +554,7 @@
 
         function changeRole(role) {
             DB.currentUser.role = role;
-            const names = { executive: 'Alice Smith', lead: 'John Doe', manager: 'Manager User' };
+            const names = { executive: 'Shabab Md Shahnawaj', lead: 'Md. Ibrahim Mo Jumder', manager: 'Golam Muktadir' };
             DB.currentUser.name = names[role];
             DB.currentUser.id = role === 'executive' ? 2 : role === 'lead' ? 1 : 5;
             
@@ -637,11 +620,10 @@
 
         function getTypeColor(type) {
             const colors = {
+                'phone_whatsapp_contact': 'bg-indigo-50 text-indigo-700',
                 'merchant_visit': 'bg-blue-50 text-blue-700',
-                'order_collection': 'bg-green-50 text-green-700',
-                'follow_up': 'bg-orange-50 text-orange-700',
-                'new_onboarding': 'bg-purple-50 text-purple-700',
-                'complaint_resolution': 'bg-red-50 text-red-700'
+                'onboard': 'bg-green-50 text-green-700',
+                'churn': 'bg-red-50 text-red-700'
             };
             return colors[type] || 'bg-slate-50 text-slate-700';
         }
